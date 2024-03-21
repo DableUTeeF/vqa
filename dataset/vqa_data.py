@@ -33,7 +33,8 @@ class GQADataset(Dataset):
                 self.data.append(
                     (
                         os.path.join(image_dir, question['imageId'] + '.jpg'),
-                        question['fullAnswer']
+                        question['question'],
+                        question['fullAnswer'],
                     )
                 )
 
@@ -41,8 +42,8 @@ class GQADataset(Dataset):
         return len(self.data)
 
     def __getitem__(self, idx):
-        path, answer = self.data[idx]
-        return Image.open(path).convert('RGB'), answer
+        path, question, answer = self.data[idx]
+        return Image.open(path).convert('RGB'), question, answer
 
 
 class VQAv2Datasets:
