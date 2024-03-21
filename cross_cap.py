@@ -180,13 +180,29 @@ def compute_metrics(eval_preds):
     preds, labels = eval_preds
     if isinstance(preds, tuple):
         preds = preds[0]
-    # print(preds.shape,labels.shape,(preds == labels).mean())
-    return {'accuracy': (preds == labels).mean()}
+    preds = preds.argmax(axis=-1)
+    decoded_preds = tokenizer.batch_decode(preds, skip_special_tokens=True)
+    # Replace -100 in the labels as we can't decode them.
+    labels = np.where(labels != -100, labels, tokenizer.pad_token_id)
+    decoded_labels = tokenizer.batch_decode(labels, skip_special_tokens=True)
+    # Some simple post-processing
+    decoded_preds, decoded_labels = postprocess_text(decoded_preds,
+                                                     decoded_labels)
+    rouge_result = rouge.compute(predictions=decoded_preds,
+                                 references=decoded_labels,
+                                 use_stemmer=True)
+    result = {k: round(v * 100, 4) for k, v in rouge_result.items()}
+    # bleu_result = bleu.compute(predictions=decoded_preds,
+    #                            references=decoded_labels)
+    # result.update({k: round(v * 100, 4) for k, v in bleu_result.items()})
+    prediction_lens = [np.count_nonzero(pred != tokenizer.pad_token_id) for pred in preds]
+    result["gen_len"] = np.mean(prediction_lens)
+    return result
 
 
 def preprocess_logits_for_metrics(logits, labels):
     # print(logits[0].size(), labels.size())
-    return logits[0].argmax(axis=2), labels
+    return logits[0].argmax(axis=-1), labels
 
 
 if __name__ == '__main__':
@@ -313,7 +329,7 @@ if __name__ == '__main__':
         dataloader_num_workers=worker,
         # eval_steps=50000,
         save_safetensors=False,
-        generation_max_length=50
+        generation_max_length=args.max_target_length,
 
     )
 
