@@ -183,15 +183,18 @@ def compute_metrics(eval_preds):
     # print(preds.shape,labels.shape,(preds == labels).mean())
     return {'accuracy': (preds == labels).mean()}
 
+
 def preprocess_logits_for_metrics(logits, labels):
     # print(logits[0].size(), labels.size())
     return logits[0].argmax(axis=2), labels
+
 
 if __name__ == '__main__':
     ProgressCallback.on_log = on_log
     VisionEncoderDecoderModel.forward = forward
     parser = argparse.ArgumentParser()
     parser.add_argument('expname', type=str)
+    parser.add_argument('dataset', type=str)
     parser.add_argument('--max_target_length', type=int, default=50)
     parser.add_argument('--lora_alpha', type=int, default=16)
     parser.add_argument('--lora_dropout', type=float, default=0.05)
@@ -228,21 +231,41 @@ if __name__ == '__main__':
             '/project/lt200203-aimedi/vqav2/annotations/v2_OpenEnded_mscoco_train2014_questions.json',
             '/project/lt200203-aimedi/vqav2/annotations/v2_OpenEnded_mscoco_val2014_questions.json',
         ]
-        image_src = '/project/lt200060-capgen/coco/images'
+        vqav2_src = '/project/lt200060-capgen/coco/images'
+    elif os.path.exists("/data"):
+        instances2017 = [
+            '/home/palm/data/coco/annotations/instances_train2017.json',
+            '/home/palm/data/coco/annotations/instances_val2017.json',
+        ]
+        qa_anns2014 = [
+            '/home/palm/data/vqav2/v2_mscoco_train2014_annotations.json',
+            '/home/palm/data/vqav2/v2_mscoco_val2014_annotations.json',
+        ]
+        qa_questions2014 = [
+            '/home/palm/data/vqav2/v2_OpenEnded_mscoco_train2014_questions.json',
+            '/home/palm/data/vqav2/v2_OpenEnded_mscoco_val2014_questions.json',
+        ]
+        vqav2_src = '/home/palm/data/coco/images'
+        gqa_train = '/data/gqa/annotations/train_all_questions'
+        gqa_val = '/data/gqa/annotations/val_all_questions.json'
+        gqa_src = '/data/gqa/images'
 
-    datasets = VQAv2Datasets(
-        instances2017,
-        qa_anns2014,
-        qa_questions2014,
-        image_src,
-
-    )
     tokenizer = AutoTokenizer.from_pretrained(text_decode_model, trust_remote_code=True)
-    train_set = datasets.train2014()
-    print(len(train_set), flush=True)
-    valid_set = datasets.val2014()
-    print(len(valid_set), flush=True)
+    if args.dataset == 'vqa' or args.dataset == 'vqav2':
+        datasets = VQAv2Datasets(
+            instances2017,
+            qa_anns2014,
+            qa_questions2014,
+            vqav2_src,
+        )
+        train_set = datasets.train2014()
+        valid_set = datasets.val2014()
+    elif args.dataset == 'gqa':
+        train_set = GQADataset(gqa_src, gqa_train)
+        valid_set = GQADataset(gqa_src, gqa_val)
 
+    print(len(train_set), flush=True)
+    print(len(valid_set), flush=True)
     logdir = os.path.join(args.logdir, expname)
     rouge = evaluate.load(rouge_path)
     if 'gpt' in args.text_decode_model.lower():
