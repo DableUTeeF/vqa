@@ -253,6 +253,8 @@ if __name__ == '__main__':
         text_decode_model = args.text_decode_model
         rouge_path = 'rouge'
         output_dir = os.path.join('workdir/', expname)
+        disable_tqdm = True
+        worker = 16
         instances2017 = [
             '/home/palm/data/coco/annotations/instances_train2017.json',
             '/home/palm/data/coco/annotations/instances_val2017.json',
