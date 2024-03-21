@@ -16,7 +16,7 @@ import numpy as np
 import evaluate
 import nltk
 from transformers.models.vision_encoder_decoder.modeling_vision_encoder_decoder import shift_tokens_right, VisionEncoderDecoderModel
-from transformers.trainer_callback import ProgressCallback
+from transformers.trainer_callback import ProgressCallback, PrinterCallback
 from transformers.modeling_outputs import BaseModelOutput, Seq2SeqLMOutput
 from torch.nn import CrossEntropyLoss
 
@@ -207,6 +207,7 @@ def preprocess_logits_for_metrics(logits, labels):
 
 if __name__ == '__main__':
     ProgressCallback.on_log = on_log
+    PrinterCallback.on_log = on_log
     VisionEncoderDecoderModel.forward = forward
     parser = argparse.ArgumentParser()
     parser.add_argument('expname', type=str)
