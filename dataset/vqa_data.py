@@ -1,4 +1,5 @@
 import warnings
+
 warnings.filterwarnings('ignore')
 import os
 from torch.utils.data import Dataset
@@ -6,13 +7,51 @@ from PIL import Image
 import json
 
 
+class GQADataset(Dataset):
+    def __init__(
+            self,
+            image_dir,
+            annotations,
+            istrain
+    ):
+        self.data = []
+        if istrain:
+            for file in os.listdir(annotations):
+                ann = json.load(os.path.join(annotations, file))
+                for qid in ann:
+                    question = ann[qid]
+                    self.data.append(
+                        (
+                            os.path.join(image_dir, question['imageId']+'.jpg'),
+                            question['fullAnswer']
+                        )
+                    )
+        else:
+            ann = json.load(annotations)
+            for qid in ann:
+                question = ann[qid]
+                self.data.append(
+                    (
+                        os.path.join(image_dir, question['imageId'] + '.jpg'),
+                        question['fullAnswer']
+                    )
+                )
+
+    def __len__(self):
+        return len(self.data)
+
+    def __getitem__(self, idx):
+        path, answer = self.data[idx]
+        return Image.open(path).convert('RGB'), answer
+
+
 class VQAv2Datasets:
     def __init__(
-        self,
-        instances2017,
-        qa_anns2014,
-        qa_questions2014,
-        image_src,
+            self,
+            instances2017,
+            qa_anns2014,
+            qa_questions2014,
+            image_src,
     ):
         self.images = {}
         for split, instance in zip(['train2017', 'val2017'], instances2017):
@@ -40,9 +79,11 @@ class VQAv2Datasets:
                 #     print(os.path.join(split, f'{image_id:012d}.jpg'))
                 #     continue
                 data.append(
-                    [os.path.join(self.image_src, split, f'{image_id:012d}.jpg'),
-                    question,
-                    ans['answer'],]
+                    [
+                        os.path.join(self.image_src, split, f'{image_id:012d}.jpg'),
+                        question,
+                        ans['answer'],
+                    ]
                 )
         return VQAv2Dataset(data)
 
@@ -58,9 +99,11 @@ class VQAv2Datasets:
                 #     print(os.path.join(split, f'{image_id:012d}.jpg'))
                 #     continue
                 data.append(
-                    [os.path.join(self.image_src, split, f'{image_id:012d}.jpg'),
-                    question,
-                    ans['answer'],]
+                    [
+                        os.path.join(self.image_src, split, f'{image_id:012d}.jpg'),
+                        question,
+                        ans['answer'],
+                    ]
                 )
         return VQAv2Dataset(data)
 
