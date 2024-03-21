@@ -5,6 +5,7 @@ import os
 from torch.utils.data import Dataset
 from PIL import Image
 import json
+import pandas as pd
 
 
 class GQADataset(Dataset):
@@ -12,39 +13,47 @@ class GQADataset(Dataset):
             self,
             image_dir,
             annotations,
-            istrain
     ):
-        self.data = []
-        if istrain:
-            for file in os.listdir(annotations):
-                ann = json.load(open(os.path.join(annotations, file)))
-                for qid in ann:
-                    question = ann[qid]
-                    self.data.append(
-                        (
-                            os.path.join(image_dir, question['imageId']+'.jpg'),
-                            question['question'],
-                            question['fullAnswer']
-                        )
-                    )
-        else:
-            ann = json.load(open(annotations))
-            for qid in ann:
-                question = ann[qid]
-                self.data.append(
-                    (
-                        os.path.join(image_dir, question['imageId'] + '.jpg'),
-                        question['question'],
-                        question['fullAnswer'],
-                    )
-                )
+        self.data = pd.read_csv(annotations)
+        self.src = image_dir
 
     def __len__(self):
         return len(self.data)
 
     def __getitem__(self, idx):
-        path, question, answer = self.data[idx]
-        return Image.open(path).convert('RGB'), question, answer
+        row = self.data.iloc[idx]
+        path = os.path.join(self.src, row['image'])
+        return Image.open(path).convert('RGB'), row.question, row.answer
+
+    @staticmethod
+    def gen_jsonl(
+            image_dir,
+            annotations,
+            istrain,
+            dst
+    ):
+        data = {
+            'image': [],
+            'question': [],
+            'answer': [],
+        }
+        if istrain:
+            for file in os.listdir(annotations):
+                ann = json.load(open(os.path.join(annotations, file)))
+                for qid in ann:
+                    question = ann[qid]
+                    data['image'].append(os.path.join(image_dir, question['imageId'] + '.jpg'))
+                    data['question'].append(question['question'])
+                    data['answer'].append(question['fullAnswer'])
+        else:
+            ann = json.load(open(annotations))
+            for qid in ann:
+                question = ann[qid]
+                data['image'].append(os.path.join(image_dir, question['imageId'] + '.jpg'))
+                data['question'].append(question['question'])
+                data['answer'].append(question['fullAnswer'])
+        data = pd.DataFrame(data)
+        data.to_csv(dst, index=False)
 
 
 class VQAv2Datasets:
