@@ -23,6 +23,7 @@ class GQADataset(Dataset):
                     self.data.append(
                         (
                             os.path.join(image_dir, question['imageId']+'.jpg'),
+                            question['question'],
                             question['fullAnswer']
                         )
                     )
