@@ -201,13 +201,13 @@ if __name__ == '__main__':
     parser.add_argument('--bs', type=int, default=8)
     parser.add_argument('--lr', type=float, default=4e-4)
     parser.add_argument('--gradient_steps', type=int, default=4)
-    parser.add_argument('--text_decode_model', type=str, default='mGPT')
+    parser.add_argument('--text_decode_model', type=str, default='gpt2')
     parser.add_argument('--logdir', type=str, default='./logs')
     parser.add_argument('--overwrite', action='store_true')
     parser.add_argument('--resume', action='store_true')
     parser.add_argument('--encoder_freeze', action='store_true')
     args = parser.parse_args()
-    expname = args.expname + f'_{args.lr:.1e}_{args.bs}'
+    expname = args.expname + f'_{args.lr:.1e}_{args.bs}_{args.dataset}'
     print(expname, flush=True)
     target_modules = ['enc_to_dec_proj', "q_proj", "v_proj",]
     if os.path.exists("/project/lt200060-capgen/palm/"):
@@ -233,6 +233,10 @@ if __name__ == '__main__':
         ]
         vqav2_src = '/project/lt200060-capgen/coco/images'
     elif os.path.exists("/data"):
+        vit_model = "google/vit-base-patch16-224-in21k"
+        text_decode_model = args.text_decode_model
+        rouge_path = 'rouge'
+        output_dir = os.path.join('workdir/', expname)
         instances2017 = [
             '/home/palm/data/coco/annotations/instances_train2017.json',
             '/home/palm/data/coco/annotations/instances_val2017.json',
