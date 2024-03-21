@@ -268,8 +268,8 @@ if __name__ == '__main__':
             '/home/palm/data/vqav2/v2_OpenEnded_mscoco_val2014_questions.json',
         ]
         vqav2_src = '/home/palm/data/coco/images'
-        gqa_train = '/data/gqa/annotations/train_all_questions'
-        gqa_val = '/data/gqa/annotations/val_all_questions.json'
+        gqa_train = '/data/gqa/annotations/train.csv'
+        gqa_val = '/data/gqa/annotations/val.csv'
         gqa_src = '/data/gqa/images'
 
     tokenizer = AutoTokenizer.from_pretrained(text_decode_model, trust_remote_code=True)
@@ -283,8 +283,8 @@ if __name__ == '__main__':
         train_set = datasets.train2014()
         valid_set = datasets.val2014()
     elif args.dataset == 'gqa':
-        train_set = GQADataset(gqa_src, gqa_train, True)
-        valid_set = GQADataset(gqa_src, gqa_val, False)
+        train_set = GQADataset(gqa_src, gqa_train)
+        valid_set = GQADataset(gqa_src, gqa_val)
 
     print(len(train_set), flush=True)
     print(len(valid_set), flush=True)
