@@ -17,7 +17,7 @@ class GQADataset(Dataset):
         self.data = []
         if istrain:
             for file in os.listdir(annotations):
-                ann = json.load(os.path.join(annotations, file))
+                ann = json.load(open(os.path.join(annotations, file)))
                 for qid in ann:
                     question = ann[qid]
                     self.data.append(
@@ -27,7 +27,7 @@ class GQADataset(Dataset):
                         )
                     )
         else:
-            ann = json.load(annotations)
+            ann = json.load(open(annotations))
             for qid in ann:
                 question = ann[qid]
                 self.data.append(
