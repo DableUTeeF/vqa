@@ -26,7 +26,7 @@ class GQADataset(Dataset):
         return Image.open(path).convert('RGB'), row.question, row.answer
 
     @staticmethod
-    def gen_jsonl(
+    def gen_csv(
             image_dir,
             annotations,
             istrain,
@@ -130,3 +130,21 @@ class VQAv2Dataset(Dataset):
         image, question, answer = self.data[i]
         image = Image.open(image).convert('RGB')
         return image, question, answer
+
+
+if __name__ == '__main__':
+    gqa_train = '/data/gqa/annotations/train_all_questions'
+    gqa_val = '/data/gqa/annotations/val_all_questions.json'
+    gqa_src = '/data/gqa/images'
+    GQADataset.gen_csv(
+        gqa_src,
+        gqa_train,
+        True,
+        '/data/gqa/annotations/train.csv'
+    )
+    GQADataset.gen_csv(
+        gqa_src,
+        gqa_val,
+        False,
+        '/data/gqa/annotations/val.csv'
+    )
