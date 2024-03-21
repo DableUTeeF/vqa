@@ -195,7 +195,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('expname', type=str)
     parser.add_argument('dataset', type=str)
-    parser.add_argument('--max_target_length', type=int, default=50)
+    parser.add_argument('--max_target_length', type=int, default=120)
     parser.add_argument('--lora_alpha', type=int, default=16)
     parser.add_argument('--lora_dropout', type=float, default=0.05)
     parser.add_argument('--bs', type=int, default=8)
@@ -265,8 +265,8 @@ if __name__ == '__main__':
         train_set = datasets.train2014()
         valid_set = datasets.val2014()
     elif args.dataset == 'gqa':
-        train_set = GQADataset(gqa_src, gqa_train)
-        valid_set = GQADataset(gqa_src, gqa_val)
+        train_set = GQADataset(gqa_src, gqa_train, True)
+        valid_set = GQADataset(gqa_src, gqa_val, False)
 
     print(len(train_set), flush=True)
     print(len(valid_set), flush=True)
